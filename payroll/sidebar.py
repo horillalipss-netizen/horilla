@@ -6,66 +6,61 @@ payroll/sidebar.py
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as trans
 
-MENU = trans("Payroll")
+# Renamed from "Payroll" to "Compensation" per the access spec.
+MENU = trans("Compensation")
 IMG_SRC = "images/ui/wallet-outline.svg"
 
 SUBMENUS = [
     {
         "menu": trans("Dashboard"),
         "redirect": reverse("view-payroll-dashboard"),
-        "accessibility": "payroll.sidebar.dasbhoard_accessibility",
+        # HR only.
+        "accessibility": "base.access.sidebar_hr_only",
+        "hr_only": True,
     },
     {
         "menu": trans("Contract"),
         "redirect": reverse("view-contract"),
-        "accessibility": "payroll.sidebar.dasbhoard_accessibility",
+        # HR only.
+        "accessibility": "base.access.sidebar_hr_only",
+        "hr_only": True,
     },
     {
         "menu": trans("Allowances"),
         "redirect": reverse("view-allowance"),
-        "accessibility": "payroll.sidebar.allowance_accessibility",
+        # HR only.
+        "accessibility": "base.access.sidebar_hr_only",
+        "hr_only": True,
     },
     {
         "menu": trans("Deductions"),
         "redirect": reverse("view-deduction"),
-        "accessibility": "payroll.sidebar.deduction_accessibility",
+        # Disabled for everyone.
+        "accessibility": "base.access.sidebar_disabled",
     },
     {
         "menu": trans("Payslips"),
         "redirect": reverse("view-payslip"),
+        # Disabled for everyone.
+        "accessibility": "base.access.sidebar_disabled",
     },
     {
         "menu": trans("Loan / Advanced Salary"),
         "redirect": reverse("view-loan"),
-        "accessibility": "payroll.sidebar.loan_accessibility",
+        # Disabled for everyone.
+        "accessibility": "base.access.sidebar_disabled",
     },
     {
-        "menu": trans("Encashments & Reimbursements"),
+        # Renamed from "Encashments & Reimbursements" to "Well-being".
+        # Visible to everyone: non-HR may only request a reimbursement for
+        # themselves; HR can create for anyone and approves all requests.
+        "menu": trans("Well-being"),
         "redirect": reverse("view-reimbursement"),
     },
     {
         "menu": trans("Federal Tax"),
         "redirect": reverse("filing-status-view"),
-        "accessibility": "payroll.sidebar.federal_tax_accessibility",
+        # Disabled for everyone.
+        "accessibility": "base.access.sidebar_disabled",
     },
 ]
-
-
-def dasbhoard_accessibility(request, submenu, user_perms, *args, **kwargs):
-    return request.user.has_perm("payroll.view_contract")
-
-
-def allowance_accessibility(request, submenu, user_perms, *args, **kwargs):
-    return request.user.has_perm("payroll.view_allowance")
-
-
-def deduction_accessibility(request, submenu, user_perms, *args, **kwargs):
-    return request.user.has_perm("payroll.view_deduction")
-
-
-def loan_accessibility(request, submenu, user_perms, *args, **kwargs):
-    return request.user.has_perm("payroll.view_loanaccount")
-
-
-def federal_tax_accessibility(request, submenu, user_perms, *args, **kwargs):
-    return request.user.has_perm("payroll.view_filingstatus")

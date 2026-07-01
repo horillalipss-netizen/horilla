@@ -22,6 +22,7 @@ SUBMENUS = [
         "redirect": reverse("offboarding-dashboard"),
         # Offboarding dashboard is visible to HR only.
         "accessibility": "base.access.sidebar_hr_only",
+        "hr_only": True,
     },
     {
         "menu": _("Exit Process"),

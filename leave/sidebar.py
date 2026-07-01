@@ -32,12 +32,14 @@ SUBMENUS = [
         "redirect": reverse("type-view"),
         # Leave types are managed by HR only.
         "accessibility": "base.access.sidebar_hr_only",
+        "hr_only": True,
     },
     {
         "menu": trans("Assigned Leave"),
         "redirect": reverse("assign-view") + "?field=leave_type_id",
         # Only HR can assign leave.
         "accessibility": "base.access.sidebar_hr_only",
+        "hr_only": True,
     },
     {
         "menu": trans("Leave Allocation Request"),

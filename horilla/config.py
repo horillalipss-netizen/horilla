@@ -61,6 +61,7 @@ def sidebar(request):
                         MENU["menu"] = sidebar.MENU
                         MENU["app"] = app
                         MENU["img_src"] = sidebar.IMG_SRC
+                        MENU["hr_only"] = getattr(sidebar, "HR_ONLY", False)
                         MENU["submenu"] = []
                         MENUS.append(MENU)
                         for submenu in sidebar.SUBMENUS:

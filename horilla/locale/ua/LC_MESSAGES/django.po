@@ -12290,3 +12290,21 @@ msgstr "Документ видалено."
 msgid "Comment added."
 msgstr "Коментар додано."
 
+
+msgid "Compensation"
+msgstr "Компенсації"
+
+msgid "HR only"
+msgstr "тільки HR"
+
+msgid "Cafeteria Benefits"
+msgstr "Пільги на харчування"
+
+msgid "Learning"
+msgstr "Навчання"
+
+msgid "Foreign Language"
+msgstr "Іноземна мова"
+
+msgid "Reimbursement sub type"
+msgstr "Підтип відшкодування"

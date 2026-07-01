@@ -61,6 +61,22 @@
         font-size: 15px;
         padding-right: 4px;
     }
+
+    .oh-hr-only-badge {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 1px 6px;
+        font-size: 9px;
+        font-weight: 600;
+        line-height: 1.4;
+        text-transform: uppercase;
+        letter-spacing: .02em;
+        color: #fff;
+        background-color: rgba(231, 105, 85, .85);
+        border-radius: 8px;
+        vertical-align: middle;
+        white-space: nowrap;
+    }
 </style>
 
 <div class="oh-sidebar" style="position: -webkit-sticky; position: sticky; top: 0;height:100vh; overflow-x:hidden;">
@@ -120,6 +136,7 @@
                         </div>
                         <span>
                             {{menues.menu}}
+                            {% if menues.hr_only %}<span class="oh-hr-only-badge">{% trans "HR only" %}</span>{% endif %}
                         </span>
                     </a>
                     <div class="oh-sidebar__submenu" id="{{menues.app}}GenericNav" style="display: none" x-show="isOpen"
@@ -129,6 +146,7 @@
                                 <li class="oh-sidebar__submenu-item">
                                     <a href="{{submenu.redirect}}" class="oh-sidebar__submenu-link">
                                         {{submenu.menu}}
+                                        {% if submenu.hr_only %}<span class="oh-hr-only-badge">{% trans "HR only" %}</span>{% endif %}
                                     </a>
                                 </li>
                             {% endfor %}
