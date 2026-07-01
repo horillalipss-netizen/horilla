@@ -9,6 +9,9 @@ from base.templatetags.basefilters import is_reportingmanager
 
 MENU = trans("Performance")
 IMG_SRC = "images/ui/pms.svg"
+# Whole module is HR-only per the access spec.
+ACCESSIBILITY = "base.access.sidebar_hr_only"
+HR_ONLY = True
 
 
 SUBMENUS = [

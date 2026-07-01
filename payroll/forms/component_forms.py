@@ -840,6 +840,10 @@ class ReimbursementForm(ModelForm):
 
         if self.request and not self.request.user.has_perm("payroll.add_reimbursement"):
             exclude_fields.append("employee_id")
+            # Non-HR users may only request a reimbursement for themselves — not
+            # leave/bonus encashments. Restrict the type choices accordingly.
+            self.fields["type"].choices = [("reimbursement", _("Reimbursement"))]
+            self.initial["type"] = "reimbursement"
 
         self.setup_leave_fields()
 
@@ -997,6 +1001,13 @@ class ReimbursementForm(ModelForm):
         is_new = not self.instance.pk
         attachments = self.files.getlist("attachment")
         type_ = self.cleaned_data.get("type")
+
+        # When the employee field is hidden (non-HR users), the request can only
+        # be for the logged-in user — force it so nobody can file for others.
+        if "employee_id" not in self.fields and self.employee:
+            self.instance.employee_id = self.employee
+            type_ = "reimbursement"
+            self.instance.type = "reimbursement"
 
         if type_ != "reimbursement":
             self.instance.sub_type = None
