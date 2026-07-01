@@ -1453,7 +1453,7 @@ msgid "Out-Date"
 msgstr "Дата виходу"
 
 msgid "Details 123231"
-msgstr "Detalles 123231"
+msgstr "Деталі 123231"
 
 msgid "Attendance validated"
 msgstr "Відвідуваність валідовано"
@@ -3918,7 +3918,7 @@ msgid "view-deduction"
 msgstr "перегляд-відрахування"
 
 msgid "view-payslip"
-msgstr "payslip"
+msgstr "view-payslip"
 
 msgid "filing-status-view"
 msgstr "перегляд-статусу-подання"
@@ -4137,7 +4137,7 @@ msgid "view-loan"
 msgstr "перегляд-позики"
 
 msgid "view-reimbursement"
-msgstr "reembolso-vista"
+msgstr "view-reimbursement"
 
 msgid "department-manager-view"
 msgstr "перегляд-менеджера-відділу"
@@ -6927,7 +6927,7 @@ msgid "Selected"
 msgstr "Вибрано"
 
 msgid "user"
-msgstr "brugere"
+msgstr "Користувач"
 
 msgid "Unselect All"
 msgstr "Зняти вибір з усього"
@@ -7044,7 +7044,7 @@ msgid "Leave Clashes Count"
 msgstr "Кількість конфліктів відпустки"
 
 msgid "Attachment"
-msgstr "Adjunto"
+msgstr "Вкладення"
 
 msgid "The selected leave type is not assigned to this employee."
 msgstr "Вибраний тип відпустки не призначений цьому працівнику."
@@ -7554,7 +7554,7 @@ msgid "Maximum Carryforward"
 msgstr "Максимум перенесення"
 
 msgid "Carryforward Expire in"
-msgstr "Carryforward caduca en"
+msgstr "Перенесення закінчується через"
 
 msgid "Carryforward Expire period"
 msgstr "Період завершення перенесення"
@@ -9123,7 +9123,7 @@ msgid "Bulk Payslip"
 msgstr "Bulk Payslip"
 
 msgid "Create Payslip"
-msgstr "Crear Payslip"
+msgstr "Створити розрахунковий лист"
 
 msgid "Payslip"
 msgstr "Payslip"
@@ -9249,7 +9249,7 @@ msgid "Net Pay Deductions"
 msgstr "Утримання з чистої оплати"
 
 msgid "Total Deductions"
-msgstr "Deducciones totales"
+msgstr "Загальні утримання"
 
 msgid "Some deductions are not included in the total deductions because they are given as updated compensations. These deductions may be applied before the main calculation begins, such as from the basic pay or gross pay, while others are deducted after calculating the net pay."
 msgstr "Деякі утримання не включаються до загальної суми утримань, оскільки застосовуються як оновлення компенсації. Вони можуть застосовуватись до основного розрахунку (з базової або валової оплати), тоді як інші віднімаються після обчислення чистої оплати."
@@ -9276,7 +9276,7 @@ msgid "Employee Name :"
 msgstr "Ім'я працівника:"
 
 msgid "Department :"
-msgstr "Departamento :"
+msgstr "Відділ :"
 
 msgid "Bank Acc./Cheque No. :"
 msgstr "Банк. рахунок / № чека:"
@@ -9297,7 +9297,7 @@ msgid "Employee Netpay :"
 msgstr "Чиста оплата працівника:"
 
 msgid "Bank Acc./Cheque No :"
-msgstr "Acc./Cheque No :"
+msgstr "Рахунок / № чека :"
 
 msgid "Gross earning - Total Deduction"
 msgstr "Валові нарахування - Загальні утримання"
@@ -9324,7 +9324,7 @@ msgid "No files available at the moment."
 msgstr "Наразі немає доступних файлів."
 
 msgid "Reimbursements"
-msgstr "Reembolsos"
+msgstr "Відшкодування"
 
 msgid "'s reimbursement request"
 msgstr "запит на відшкодування"
@@ -10030,7 +10030,7 @@ msgid "MoM"
 msgstr "MoM"
 
 msgid " Reveal"
-msgstr " Revelar"
+msgstr " Показати"
 
 msgid " Collapse"
 msgstr " Згорнути"
