@@ -4486,7 +4486,7 @@ msgstr "{employee} видалено."
 
 #, python-brace-format
 msgid "{rwork_type_assign} not found."
-msgstr ""
+msgstr "{rwork_type_assign} не знайдено."
 
 #, python-brace-format
 msgid "You cannot delete {rwork_type_assign}"
@@ -4548,7 +4548,7 @@ msgstr "Призначення {employee} видалено."
 
 #, python-brace-format
 msgid "{rshift_assign} not found."
-msgstr ""
+msgstr "{rshift_assign} не знайдено."
 
 #, python-brace-format
 msgid "You cannot delete {rshift_assign}"
@@ -6303,7 +6303,7 @@ msgstr "Ви не можете видалити %(employee)s."
 
 #, python-format
 msgid "%(deleted_count)s employees deleted."
-msgstr ""
+msgstr "Видалено працівників: %(deleted_count)s."
 
 msgid "You can't archive the last superuser."
 msgstr "Ви не можете архівувати останнього суперкористувача."
@@ -10467,7 +10467,7 @@ msgstr "{objective} — {message}"
 
 #, python-format
 msgid "%(employee)s's %(objective)s deleted"
-msgstr ""
+msgstr "Ціль %(objective)s працівника %(employee)s видалено"
 
 #, python-format
 msgid "You can't delete objective %(objective)s with status %(status)s"
@@ -10792,7 +10792,7 @@ msgstr "ID проєктів не надано."
 
 #, python-brace-format
 msgid "{count} project(s) deleted successfully."
-msgstr ""
+msgstr "Успішно видалено проєкт(и): {count}."
 
 #, python-format
 msgid "Permission denied or skipped for: %(projects)s."
