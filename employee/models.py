@@ -117,6 +117,11 @@ class Employee(models.Model):
     emergency_contact_name = models.CharField(max_length=20, null=True, blank=True)
     emergency_contact_relation = models.CharField(max_length=20, null=True, blank=True)
     is_active = models.BooleanField(default=True)
+    is_ceo = models.BooleanField(
+        default=False,
+        verbose_name=_("CEO"),
+        help_text=_("Hidden from everyone except HR (admin)."),
+    )
     additional_info = models.JSONField(null=True, blank=True)
     is_from_onboarding = models.BooleanField(
         default=False, null=True, blank=True, editable=False
@@ -899,6 +904,21 @@ class Policy(HorillaModel):
         self.attachments.all().delete()
 
 
+class PolicyComment(HorillaModel):
+    """A comment left on a policy. Anyone who can view a policy may comment."""
+
+    policy_id = models.ForeignKey(
+        Policy,
+        on_delete=models.CASCADE,
+        related_name="policy_comments",
+        verbose_name=_("Policy"),
+    )
+    comment = models.TextField(verbose_name=_("Comment"))
+
+    class Meta:
+        ordering = ["id"]
+
+
 class BonusPoint(HorillaModel):
     """
     Model representing bonus points for employees with associated conditions.
@@ -1090,6 +1110,104 @@ class EmployeeLeaveApprover(HorillaModel):
     def __str__(self):
         who = _("Reporting Manager") if self.is_reporting_manager else self.approver_id
         return f"{self.employee_id} #{self.sequence}: {who}"
+
+
+class KnowledgeSpace(HorillaModel):
+    """
+    A Knowledge Base space. Public spaces ("Available to everyone") are readable
+    by all; private spaces ("Available to me") are readable only by HR-assigned
+    employees (see KnowledgeSpaceAccess).
+    """
+
+    title = models.CharField(max_length=100, verbose_name=_("Title"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
+    is_public = models.BooleanField(
+        default=False, verbose_name=_("Available to everyone")
+    )
+    company_id = models.ForeignKey(
+        Company,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name=_("Company"),
+    )
+    objects = HorillaCompanyManager("company_id")
+
+    class Meta:
+        verbose_name = _("Knowledge Space")
+        verbose_name_plural = _("Knowledge Spaces")
+        ordering = ["title"]
+
+    def __str__(self):
+        return self.title
+
+
+class KnowledgeSpaceAccess(HorillaModel):
+    """HR-assigned access of an employee to a private knowledge space."""
+
+    LEVELS = [
+        ("view", _("View & comment")),
+        ("full", _("Full access")),
+    ]
+    space_id = models.ForeignKey(
+        KnowledgeSpace,
+        on_delete=models.CASCADE,
+        related_name="accesses",
+        verbose_name=_("Space"),
+    )
+    employee_id = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="knowledge_accesses",
+        verbose_name=_("Employee"),
+    )
+    level = models.CharField(
+        max_length=10, choices=LEVELS, default="view", verbose_name=_("Access level")
+    )
+
+    class Meta:
+        unique_together = ("space_id", "employee_id")
+        verbose_name = _("Knowledge Space Access")
+        verbose_name_plural = _("Knowledge Space Accesses")
+
+
+class KnowledgeDocument(HorillaModel):
+    """A document/article inside a knowledge space."""
+
+    space_id = models.ForeignKey(
+        KnowledgeSpace,
+        on_delete=models.CASCADE,
+        related_name="documents",
+        verbose_name=_("Space"),
+    )
+    title = models.CharField(max_length=200, verbose_name=_("Title"))
+    description = models.TextField(blank=True, null=True, verbose_name=_("Description"))
+    attachment = models.FileField(
+        upload_to=upload_path, null=True, blank=True, verbose_name=_("Attachment")
+    )
+
+    class Meta:
+        ordering = ["-id"]
+        verbose_name = _("Knowledge Document")
+        verbose_name_plural = _("Knowledge Documents")
+
+    def __str__(self):
+        return self.title
+
+
+class KnowledgeComment(HorillaModel):
+    """A comment left on a knowledge document."""
+
+    document_id = models.ForeignKey(
+        KnowledgeDocument,
+        on_delete=models.CASCADE,
+        related_name="comments",
+        verbose_name=_("Document"),
+    )
+    comment = models.TextField(verbose_name=_("Comment"))
+
+    class Meta:
+        ordering = ["id"]
 
 
 ACCESSBILITY_FEATURE.append(("gender_chart", "Can view Gender Chart"))
