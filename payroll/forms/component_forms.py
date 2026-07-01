@@ -788,7 +788,7 @@ class ReimbursementForm(ModelForm):
     Optimized Reimbursement / Encashment Form
     """
 
-    verbose_name = "Reimbursement / Encashment"
+    verbose_name = _("Reimbursement / Well-being")
 
     class Meta:
         model = Reimbursement

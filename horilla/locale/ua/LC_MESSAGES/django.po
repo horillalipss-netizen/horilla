@@ -12298,7 +12298,10 @@ msgid "HR only"
 msgstr "тільки HR"
 
 msgid "Cafeteria Benefits"
-msgstr "Пільги на харчування"
+msgstr "Кафетерій бенефітів"
+
+msgid "Reimbursement / Well-being"
+msgstr "Відшкодування well-being"
 
 msgid "Learning"
 msgstr "Навчання"
