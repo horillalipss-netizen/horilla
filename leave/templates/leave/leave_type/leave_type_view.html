@@ -49,12 +49,10 @@
         </form>
         {% if perms.leave.add_leavetype %}
             <div class="oh-btn-group ml-2">
-                <form action="{% url 'type-creation' %}">
-                    <button class="oh-btn oh-btn--secondary oh-btn--shadow">
-                        <ion-icon name="add-outline" class="me-1"></ion-icon>
-                        {% trans "Create" %}
-                    </button>
-                </form>
+                <a href="{% url 'type-creation' %}" class="oh-btn oh-btn--secondary oh-btn--shadow">
+                    <ion-icon name="add-outline" class="me-1"></ion-icon>
+                    {% trans "Create" %}
+                </a>
             </div>
         {% endif %}
     </div>
