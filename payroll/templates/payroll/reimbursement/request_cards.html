@@ -41,14 +41,17 @@
         <li class="oh-tabs__tab" data-target="#reimbursement_tab">
             {% trans "Reimbursements" %}
         </li>
-        {% if "leave"|app_installed %}
+        {# Encashments are HR-only per the access spec. #}
+        {% if "leave"|app_installed and request.user.is_superuser %}
         <li class="oh-tabs__tab" data-target="#leave_encashment_tab">
             {% trans "Leave Encashments" %}
         </li>
         {% endif %}
+        {% if request.user.is_superuser %}
         <li class="oh-tabs__tab" data-target="#bonus_encashment_tab">
             {% trans "Bonus Encashments" %}
         </li>
+        {% endif %}
     </ul>
     <div>
         <div class="oh-tabs__contents">
@@ -343,7 +346,8 @@
                     <!-- end of empty page -->
                 {% endif %}
             </div>
-            <!--  Leave Encashments-->
+            <!--  Leave Encashments (HR-only) -->
+            {% if request.user.is_superuser %}
             <div class="oh-tabs__content" id="leave_encashment_tab">
                 {% if leave_encashments %}
                     <div class="oh-faq-cards">
@@ -629,7 +633,9 @@
                         <!-- end of empty page -->
                 {% endif %}
             </div>
-            <!-- Bonus Encashments-->
+            {% endif %}
+            <!-- Bonus Encashments (HR-only) -->
+            {% if request.user.is_superuser %}
             <div class="oh-tabs__content" id="bonus_encashment_tab">
                 {% if bonus_encashments %}
                     <div class="oh-faq-cards">
@@ -915,6 +921,7 @@
                     <!-- end of empty page -->
                 {% endif %}
             </div>
+            {% endif %}
         </div>
     </div>
 
@@ -956,6 +963,11 @@
         }
         $(document).ready(function () {
             var activeTab = localStorage.getItem("activeTabReimbursment");
+            // Fall back to the reimbursement tab when the stored tab is not
+            // rendered for this user (encashments are HR-only).
+            if (activeTab != null && $(activeTab).length === 0) {
+                activeTab = null;
+            }
             if (activeTab != null) {
                 var tab = $(`[data-target="${activeTab}"]`);
                 var tabContent = $(activeTab);
