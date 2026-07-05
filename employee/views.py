@@ -3662,38 +3662,58 @@ def organisation_chart(request):
             Employee.objects.filter(is_active=True, reporting_manager__isnull=False),
         ).distinct()
 
-    manager = request.user.employee_get
+    # Default root: the whole company below the CEO. HR sees the CEO as the
+    # root node; everyone else sees a neutral company node (CEO stays hidden).
+    ceo = Employee.objects.filter(is_active=True, is_ceo=True).first()
+    manager = ceo or request.user.employee_get
 
-    if len(reporting_managers) == 0:
-        new_dict = {}
-    else:
-        new_dict = {reporting_managers[0].id: _("My view"), **result_dict}
+    def company_node():
+        """Root node with everyone below the CEO (falls back to the viewer)."""
+        root = ceo or request.user.employee_get
+        if ceo and is_hr(request.user):
+            return {
+                "name": ceo.get_full_name(),
+                "title": getattr(ceo.get_job_position(), "job_position", _("Not set")),
+                "children": create_hierarchy(ceo),
+            }
+        company = getattr(
+            getattr(request.user.employee_get, "get_company", lambda: None)(),
+            "company",
+            None,
+        )
+        return {
+            "name": company or _("Company"),
+            "title": "",
+            "children": create_hierarchy(root),
+        }
+
+    new_dict = {"all": _("Whole company"), **result_dict}
     # POST method is used to change the reporting manager
     if request.method == "POST":
-        if request.POST.get("manager_id"):
-            manager_id = int(request.POST.get("manager_id"))
-            manager = Employee.objects.get(id=manager_id)
-        # The CEO must never be the root of the chart for non-HR viewers.
-        if is_ceo(manager) and not is_hr(request.user):
-            return render(request, "404.html", status=404)
-        node = {
-            "name": manager.get_full_name(),
-            "title": getattr(manager.get_job_position(), "job_position", _("Not set")),
-            "children": create_hierarchy(manager),
-        }
+        manager_id = request.POST.get("manager_id")
+        if manager_id and manager_id != "all":
+            manager = Employee.objects.get(id=int(manager_id))
+            # The CEO must never be the root of the chart for non-HR viewers.
+            if is_ceo(manager) and not is_hr(request.user):
+                return render(request, "404.html", status=404)
+            node = {
+                "name": manager.get_full_name(),
+                "title": getattr(
+                    manager.get_job_position(), "job_position", _("Not set")
+                ),
+                "children": create_hierarchy(manager),
+            }
+        else:
+            node = company_node()
         context = {"act_datasource": node}
         return render(request, "organisation_chart/chart.html", context=context)
 
-    node = {
-        "name": manager.get_full_name(),
-        "title": getattr(manager.get_job_position(), "job_position", _("Not set")),
-        "children": create_hierarchy(manager),
-    }
+    node = company_node()
 
     context = {
         "act_datasource": node,
         "reporting_manager_dict": new_dict,
-        "act_manager_id": manager.id,
+        "act_manager_id": "all",
     }
     return render(request, "organisation_chart/org_chart.html", context=context)
 

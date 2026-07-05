@@ -292,23 +292,43 @@ def leave_type_delete(request, obj_id):
     GET : return leave type view template
     """
     try:
-        LeaveType.objects.get(id=obj_id).delete()
-        messages.success(request, _("Leave type deleted successfully.."))
+        leave_type = LeaveType.objects.get(id=obj_id)
+        try:
+            leave_type.delete()
+            messages.success(request, _("Leave type deleted successfully.."))
+        except ProtectedError as e:
+            if request.user.is_superuser:
+                # HR may force-delete a leave type together with everything
+                # that references it (assigned leaves, requests, allocations).
+                AvailableLeave.objects.filter(leave_type_id=leave_type).delete()
+                LeaveRequest.objects.filter(leave_type_id=leave_type).delete()
+                LeaveAllocationRequest.objects.filter(
+                    leave_type_id=leave_type
+                ).delete()
+                if apps.is_installed("attendance"):
+                    CompensatoryLeaveRequest.objects.filter(
+                        leave_type_id=leave_type
+                    ).delete()
+                leave_type.delete()
+                messages.success(
+                    request,
+                    _("Leave type and all its related records were deleted."),
+                )
+            else:
+                models_verbose_name_sets = set()
+                for obj in e.protected_objects:
+                    models_verbose_name_sets.add(__(obj._meta.verbose_name))
+                models_verbose_name_str = (",").join(models_verbose_name_sets)
+                messages.error(
+                    request,
+                    _(
+                        "This leave types are already in use for {}".format(
+                            models_verbose_name_str
+                        )
+                    ),
+                )
     except (LeaveType.DoesNotExist, OverflowError, ValueError):
         messages.error(request, _("Leave type not found."))
-    except ProtectedError as e:
-        models_verbose_name_sets = set()
-        for obj in e.protected_objects:
-            models_verbose_name_sets.add(__(obj._meta.verbose_name))
-        models_verbose_name_str = (",").join(models_verbose_name_sets)
-        messages.error(
-            request,
-            _(
-                "This leave types are already in use for {}".format(
-                    models_verbose_name_str
-                )
-            ),
-        )
     if request.META.get("HTTP_HX_REQUEST") == "true":
         if request.META.get("HTTP_HX_TARGET") == "objectDetailsModalTarget":
             instances_ids = request.GET.get("instances_ids")

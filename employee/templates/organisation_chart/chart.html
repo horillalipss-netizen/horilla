@@ -46,9 +46,10 @@
     }
     $('#chart-container').orgchart({
         'data': datascource,
-        'visibleLevel': 2,
+        'visibleLevel': 10,
         'nodeContent': 'title',
-        'direction': 'l2r'
+        // Top-to-bottom layout per the access spec.
+        'direction': 't2b'
     });
     $('#key-word').on('keyup', function (event) {
         if (event.which === 13) {

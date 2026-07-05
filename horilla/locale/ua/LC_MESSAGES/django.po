@@ -12311,3 +12311,9 @@ msgstr "Іноземна мова"
 
 msgid "Reimbursement sub type"
 msgstr "Підтип відшкодування"
+
+msgid "Whole company"
+msgstr "Вся компанія"
+
+msgid "Leave type and all its related records were deleted."
+msgstr "Тип відпустки та всі пов'язані записи видалено."
