@@ -130,6 +130,31 @@ urlpatterns = [
         name="restrict-day-select-filter",
     ),
     path("restrict-day-select", views.restrict_day_select, name="restrict-day-select"),
+    path(
+        "leave-usage-restriction-view",
+        views.leave_usage_restriction_view,
+        name="leave-usage-restriction-view",
+    ),
+    path(
+        "leave-usage-restriction-list",
+        views.leave_usage_restriction_list,
+        name="leave-usage-restriction-list",
+    ),
+    path(
+        "leave-usage-restriction-creation",
+        views.leave_usage_restriction_creation,
+        name="leave-usage-restriction-creation",
+    ),
+    path(
+        "leave-usage-restriction-update/<int:id>",
+        views.leave_usage_restriction_update,
+        name="leave-usage-restriction-update",
+    ),
+    path(
+        "leave-usage-restriction-delete/<int:id>",
+        views.leave_usage_restriction_delete,
+        name="leave-usage-restriction-delete",
+    ),
     path("user-leave-filter", views.user_leave_filter, name="user-leave-filter"),
     path("user-request-view/", views.user_request_view, name="user-request-view"),
     path(

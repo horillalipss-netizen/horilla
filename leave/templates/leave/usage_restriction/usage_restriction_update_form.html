@@ -1,0 +1,71 @@
+{% load i18n %}
+{% if messages %}
+    <div class="oh-wrapper">
+        {% for message in messages %}
+            <div class="oh-alert-container">
+                <div class="oh-alert oh-alert--animated {{ message.tags }}">
+                    {{ message }}
+                </div>
+            </div>
+        {% endfor %}
+        <script>
+            setTimeout(function () {
+                $(".oh-modal__close").click();
+            }, 1000);
+        </script>
+    </div>
+    <span hx-get="{% url 'leave-usage-restriction-list' %}?{{pd}}" hx-target="#usageRestrictions" hx-trigger="load"></span>
+{% endif %}
+<div class="oh-modal__dialog-header">
+    <span class="oh-modal__dialog-title">{% trans "Update Leave Usage Limit" %}</span>
+    <button class="oh-modal__close" aria-label="Close">
+        <ion-icon name="close-outline"></ion-icon>
+    </button>
+</div>
+<div class="oh-modal__dialog-body">
+    <form hx-post="{% url 'leave-usage-restriction-update' id %}?{{pd}}" hx-target="#objectUpdateModalTarget"
+        class="oh-profile-section" id="leaveUsageRestrictionUpdateForm">
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-6 col-lg-6">
+                <div class="oh-input__group">
+                    <label class="oh-label d-block" for="{{ form.employee_id.id_for_label }}">{{ form.employee_id.label }}</label>
+                    {{form.employee_id}} {{form.employee_id.errors}}
+                </div>
+            </div>
+            <div class="col-12 col-sm-12 col-md-6 col-lg-6">
+                <div class="oh-input__group">
+                    <label class="oh-label d-flex" for="{{ form.leave_type_ids.id_for_label }}">{{ form.leave_type_ids.label }}
+                        <span class="oh-info ms-2" title="{{ form.leave_type_ids.help_text }}"></span>
+                    </label>
+                    {{form.leave_type_ids}} {{form.leave_type_ids.errors}}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-sm-12 col-md-6 col-lg-6">
+                <div class="oh-input__group">
+                    <label class="oh-label d-flex" for="{{ form.max_consecutive_days.id_for_label }}">{{ form.max_consecutive_days.label }}
+                        <span class="oh-info ms-2" title="{{ form.max_consecutive_days.help_text }}"></span>
+                    </label>
+                    {{form.max_consecutive_days}} {{form.max_consecutive_days.errors}}
+                </div>
+            </div>
+            <div class="col-12 col-sm-12 col-md-6 col-lg-6">
+                <div class="oh-input__group">
+                    <label class="oh-label d-flex" for="{{ form.valid_until.id_for_label }}">{{ form.valid_until.label }}
+                        <span class="oh-info ms-2" title="{{ form.valid_until.help_text }}"></span>
+                    </label>
+                    {{form.valid_until}} {{form.valid_until.errors}}
+                </div>
+            </div>
+        </div>
+        <label class="oh-label d-block" for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>
+        {{form.description}} {{form.description.errors}}
+        {{form.non_field_errors}}
+        <div class="oh-modal__dialog-footer p-0 pt-2">
+            <button type="submit" class="oh-btn oh-btn--secondary oh-btn--shadow">
+                {% trans "Save" %}
+            </button>
+        </div>
+    </form>
+</div>

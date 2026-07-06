@@ -1059,6 +1059,9 @@ class LeaveRequest(HorillaModel):
         if request.user.is_superuser:
             return cleaned_data
 
+        # Consecutive-days usage restriction checks
+        self.check_leave_type_usage_restrictions()
+
         # Restricted leave checks
         for restrict in restricted_leaves:
             exclued_types = set(restrict.exclued_leave_types.all())
@@ -1092,6 +1095,80 @@ class LeaveRequest(HorillaModel):
                     )
 
         return cleaned_data
+
+    def check_leave_type_usage_restrictions(self):
+        """
+        Enforce LeaveTypeUsageRestriction: the employee cannot take more than
+        the allowed number of consecutive leave days (of the restricted leave
+        types, counted together) on dates up to the restriction's valid_until.
+        Adjacent existing leave requests of the restricted types are counted
+        as part of the same consecutive run.
+        """
+        restrictions = LeaveTypeUsageRestriction.objects.filter(
+            employee_id=self.employee_id,
+            leave_type_ids=self.leave_type_id,
+            valid_until__gte=self.start_date,
+        )
+        if not restrictions:
+            return
+
+        requested_dates = set(self.requested_dates())
+        for restriction in restrictions:
+            restricted_type_ids = list(
+                restriction.leave_type_ids.values_list("id", flat=True)
+            )
+            other_requests = (
+                LeaveRequest.objects.filter(
+                    employee_id=self.employee_id,
+                    leave_type_id__in=restricted_type_ids,
+                )
+                .exclude(status__in=["cancelled", "rejected"])
+                .exclude(id=self.id)
+            )
+            leave_dates = set()
+            for leave_request in other_requests:
+                leave_dates.update(leave_request.requested_dates())
+            # Only days inside the validity window count towards the limit
+            all_dates = {
+                day
+                for day in leave_dates | requested_dates
+                if day <= restriction.valid_until
+            }
+            checked_dates = set()
+            for day in requested_dates:
+                if day > restriction.valid_until or day in checked_dates:
+                    continue
+                run_start = day
+                while run_start - timedelta(days=1) in all_dates:
+                    run_start -= timedelta(days=1)
+                run_end = day
+                while run_end + timedelta(days=1) in all_dates:
+                    run_end += timedelta(days=1)
+                run_length = (run_end - run_start).days + 1
+                checked_dates.update(
+                    run_start + timedelta(days=i) for i in range(run_length)
+                )
+                if run_length > restriction.max_consecutive_days:
+                    leave_type_names = ", ".join(
+                        str(leave_type)
+                        for leave_type in restriction.leave_type_ids.all()
+                    )
+                    raise ValidationError(
+                        _(
+                            "Until %(valid_until)s you cannot take more than "
+                            "%(max_days)s consecutive day(s) of the leave types: "
+                            "%(leave_types)s. This request would result in "
+                            "%(run_length)s consecutive day(s)."
+                        )
+                        % {
+                            "valid_until": restriction.valid_until.strftime(
+                                "%d.%m.%Y"
+                            ),
+                            "max_days": restriction.max_consecutive_days,
+                            "leave_types": leave_type_names,
+                            "run_length": run_length,
+                        }
+                    )
 
     def exclude_all_leaves(self):
         requested_dates = self.requested_dates()
@@ -1396,6 +1473,56 @@ class RestrictLeave(HorillaModel):
 
     def __str__(self) -> str:
         return f"{self.title}"
+
+
+class LeaveTypeUsageRestriction(HorillaModel):
+    """
+    Per-employee limit on how many consecutive days of the selected leave
+    types can be taken, effective until a given date. Leaves of all selected
+    leave types are counted together when measuring consecutive days.
+    """
+
+    employee_id = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="leave_usage_restrictions",
+        verbose_name=_("Employee"),
+    )
+    leave_type_ids = models.ManyToManyField(
+        LeaveType,
+        related_name="usage_restrictions",
+        verbose_name=_("Leave Types"),
+        help_text=_(
+            "Leaves of all the selected leave types are counted together "
+            "when checking the consecutive days limit."
+        ),
+    )
+    max_consecutive_days = models.PositiveIntegerField(
+        verbose_name=_("Maximum Consecutive Days"),
+        help_text=_(
+            "The maximum number of consecutive leave days the employee can take."
+        ),
+    )
+    valid_until = models.DateField(
+        verbose_name=_("Valid Until"),
+        help_text=_(
+            "The restriction applies to leave days up to and including this date."
+        ),
+    )
+    description = models.TextField(
+        null=True, blank=True, verbose_name=_("Description"), max_length=255
+    )
+    objects = HorillaCompanyManager(
+        related_company_field="employee_id__employee_work_info__company_id"
+    )
+
+    class Meta:
+        ordering = ["-id"]
+        verbose_name = _("Leave Usage Restriction")
+        verbose_name_plural = _("Leave Usage Restrictions")
+
+    def __str__(self) -> str:
+        return f"{self.employee_id} | max {self.max_consecutive_days} | {self.valid_until}"
 
 
 if apps.is_installed("attendance"):

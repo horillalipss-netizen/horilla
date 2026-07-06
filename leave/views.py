@@ -2187,6 +2187,122 @@ def restrict_day_select_filter(request):
 
 
 @login_required
+@permission_required("leave.view_leavetypeusagerestriction")
+def leave_usage_restriction_view(request):
+    """
+    Function used to view per-employee consecutive leave days restrictions.
+    """
+    queryset = LeaveTypeUsageRestriction.objects.all()
+    previous_data = request.GET.urlencode()
+    page_number = request.GET.get("page")
+    page_obj = paginator_qry(queryset, page_number)
+    return render(
+        request,
+        "leave/usage_restriction/view_usage_restriction.html",
+        {
+            "usage_restrictions": page_obj,
+            "pd": previous_data,
+        },
+    )
+
+
+@login_required
+@hx_request_required
+@permission_required("leave.view_leavetypeusagerestriction")
+def leave_usage_restriction_list(request):
+    """
+    Function used to search/paginate consecutive leave days restrictions.
+    """
+    queryset = LeaveTypeUsageRestriction.objects.all()
+    previous_data = request.GET.urlencode()
+    search = request.GET.get("search")
+    if search:
+        queryset = queryset.filter(
+            Q(employee_id__employee_first_name__icontains=search)
+            | Q(employee_id__employee_last_name__icontains=search)
+        )
+    page_number = request.GET.get("page")
+    page_obj = paginator_qry(queryset, page_number)
+    return render(
+        request,
+        "leave/usage_restriction/usage_restriction_list.html",
+        {"usage_restrictions": page_obj, "pd": previous_data},
+    )
+
+
+@login_required
+@hx_request_required
+@permission_required("leave.add_leavetypeusagerestriction")
+def leave_usage_restriction_creation(request):
+    """
+    Function used to create a consecutive leave days restriction.
+    """
+    query_string = request.GET.urlencode()
+    if query_string.startswith("pd="):
+        previous_data = unquote(query_string[len("pd=") :])
+    else:
+        previous_data = unquote(query_string)
+    form = LeaveTypeUsageRestrictionForm()
+    if request.method == "POST":
+        form = LeaveTypeUsageRestrictionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            form = LeaveTypeUsageRestrictionForm()
+            messages.success(request, _("Leave usage restriction created successfully."))
+            if LeaveTypeUsageRestriction.objects.count() == 1:
+                return HorillaRedirect(request)
+    return render(
+        request,
+        "leave/usage_restriction/usage_restriction_form.html",
+        {"form": form, "pd": previous_data},
+    )
+
+
+@login_required
+@hx_request_required
+@permission_required("leave.change_leavetypeusagerestriction")
+def leave_usage_restriction_update(request, id):
+    """
+    Function used to update a consecutive leave days restriction.
+    """
+    query_string = request.GET.urlencode()
+    if query_string.startswith("pd="):
+        previous_data = unquote(query_string[len("pd=") :])
+    else:
+        previous_data = unquote(query_string)
+    usage_restriction = get_object_or_404(LeaveTypeUsageRestriction, id=id)
+    form = LeaveTypeUsageRestrictionForm(instance=usage_restriction)
+    if request.method == "POST":
+        form = LeaveTypeUsageRestrictionForm(request.POST, instance=usage_restriction)
+        if form.is_valid():
+            form.save()
+            messages.success(request, _("Leave usage restriction updated successfully."))
+    return render(
+        request,
+        "leave/usage_restriction/usage_restriction_update_form.html",
+        {"form": form, "id": id, "pd": previous_data},
+    )
+
+
+@login_required
+@hx_request_required
+@permission_required("leave.delete_leavetypeusagerestriction")
+def leave_usage_restriction_delete(request, id):
+    """
+    Function used to delete a consecutive leave days restriction.
+    """
+    query_string = request.GET.urlencode()
+    try:
+        LeaveTypeUsageRestriction.objects.get(id=id).delete()
+        messages.success(request, _("Leave usage restriction deleted successfully."))
+    except LeaveTypeUsageRestriction.DoesNotExist:
+        messages.error(request, _("Leave usage restriction not found."))
+    if not LeaveTypeUsageRestriction.objects.exists():
+        return HorillaRedirect(request)
+    return redirect(f"/leave/leave-usage-restriction-list?{query_string}")
+
+
+@login_required
 @hx_request_required
 def user_leave_request(request, id):
     """
