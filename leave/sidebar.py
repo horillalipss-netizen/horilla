@@ -62,6 +62,13 @@ SUBMENUS = [
         "redirect": reverse("restrict-view"),
         "accessibility": "leave.sidebar.restrict_leave_accessibility",
     },
+    {
+        "menu": trans("Leave Usage Limits"),
+        "redirect": reverse("leave-usage-restriction-view"),
+        # Per-employee consecutive-days limits are managed by HR only.
+        "accessibility": "base.access.sidebar_hr_only",
+        "hr_only": True,
+    },
 ]
 
 

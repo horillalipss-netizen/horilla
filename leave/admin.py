@@ -18,6 +18,7 @@ from .models import (
     LeaverequestComment,
     LeaveRequestConditionApproval,
     LeaveType,
+    LeaveTypeUsageRestriction,
     RestrictLeave,
 )
 
@@ -35,6 +36,7 @@ admin.site.register(LeaveRequestConditionApproval)
 admin.site.register(LeaverequestComment)
 admin.site.register(LeaveallocationrequestComment)
 admin.site.register(RestrictLeave)
+admin.site.register(LeaveTypeUsageRestriction)
 admin.site.register(LeaveGeneralSetting)
 if apps.is_installed("attendance"):
     from .models import CompensatoryLeaveRequest

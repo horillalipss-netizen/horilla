@@ -35,6 +35,7 @@ from leave.models import (
     LeaverequestComment,
     LeaverequestFile,
     LeaveType,
+    LeaveTypeUsageRestriction,
     RestrictLeave,
 )
 
@@ -892,6 +893,33 @@ class RestrictLeaveForm(BaseModelForm):
                 "hx-get": "/leave/get-restrict-job-positions",
             }
         )
+
+
+class LeaveTypeUsageRestrictionForm(BaseModelForm):
+    """
+    Form to create/update per-employee consecutive leave days restrictions.
+    """
+
+    class Meta:
+        model = LeaveTypeUsageRestriction
+        fields = [
+            "employee_id",
+            "leave_type_ids",
+            "max_consecutive_days",
+            "valid_until",
+            "description",
+        ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["valid_until"].initial = None
+        self.fields["max_consecutive_days"].widget.attrs["min"] = 1
+
+    def clean_max_consecutive_days(self):
+        max_days = self.cleaned_data.get("max_consecutive_days")
+        if max_days is not None and max_days < 1:
+            raise ValidationError(_("Maximum consecutive days should be at least 1."))
+        return max_days
 
 
 if apps.is_installed("attendance"):

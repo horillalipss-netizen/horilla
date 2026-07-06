@@ -12317,3 +12317,54 @@ msgstr "Вся компанія"
 
 msgid "Leave type and all its related records were deleted."
 msgstr "Тип відпустки та всі пов'язані записи видалено."
+
+msgid "Leave Usage Limits"
+msgstr "Ліміти використання відпусток"
+
+msgid "Leave Usage Restriction"
+msgstr "Обмеження використання відпустки"
+
+msgid "Leave Usage Restrictions"
+msgstr "Обмеження використання відпусток"
+
+msgid "Maximum Consecutive Days"
+msgstr "Максимум днів підряд"
+
+msgid "Valid Until"
+msgstr "Діє до"
+
+msgid "Leaves of all the selected leave types are counted together when checking the consecutive days limit."
+msgstr "Відпустки всіх вибраних типів рахуються разом під час перевірки ліміту днів підряд."
+
+msgid "The maximum number of consecutive leave days the employee can take."
+msgstr "Максимальна кількість днів відпустки підряд, яку може взяти працівник."
+
+msgid "The restriction applies to leave days up to and including this date."
+msgstr "Обмеження діє для днів відпустки до цієї дати включно."
+
+msgid "Create Leave Usage Limit"
+msgstr "Створити ліміт використання відпусток"
+
+msgid "Update Leave Usage Limit"
+msgstr "Оновити ліміт використання відпусток"
+
+msgid "No leave usage limits available."
+msgstr "Немає лімітів використання відпусток."
+
+msgid "Leave usage restriction created successfully."
+msgstr "Ліміт використання відпусток успішно створено."
+
+msgid "Leave usage restriction updated successfully."
+msgstr "Ліміт використання відпусток успішно оновлено."
+
+msgid "Leave usage restriction deleted successfully."
+msgstr "Ліміт використання відпусток успішно видалено."
+
+msgid "Leave usage restriction not found."
+msgstr "Ліміт використання відпусток не знайдено."
+
+msgid "Maximum consecutive days should be at least 1."
+msgstr "Максимальна кількість днів підряд має бути не менше 1."
+
+msgid "Until %(valid_until)s you cannot take more than %(max_days)s consecutive day(s) of the leave types: %(leave_types)s. This request would result in %(run_length)s consecutive day(s)."
+msgstr "До %(valid_until)s ви не можете взяти більше %(max_days)s дн. підряд відпусток типів: %(leave_types)s. Цей запит призведе до %(run_length)s дн. підряд."

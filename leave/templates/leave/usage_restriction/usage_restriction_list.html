@@ -1,0 +1,119 @@
+{% load i18n %} {% load static %}
+
+{% if messages %}
+    <div class="oh-wrapper">
+        {% for message in messages %}
+        <div class="oh-alert-container">
+            <div class="oh-alert oh-alert--animated {{ message.tags }}">
+                {{ message }}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% endif %}
+
+{% if usage_restrictions %}
+    <div class="oh-sticky-table">
+        <div class="oh-sticky-table__table">
+            <div class="oh-sticky-table__thead">
+                <div class="oh-sticky-table__tr">
+                    <div class="oh-sticky-table__th">{% trans "Employee" %}</div>
+                    <div class="oh-sticky-table__th">{% trans "Leave Types" %}</div>
+                    <div class="oh-sticky-table__th">{% trans "Maximum Consecutive Days" %}</div>
+                    <div class="oh-sticky-table__th">{% trans "Valid Until" %}</div>
+                    <div class="oh-sticky-table__th">{% trans "Description" %}</div>
+                    {% if perms.leave.change_leavetypeusagerestriction or perms.leave.delete_leavetypeusagerestriction %}
+                        <div class="oh-sticky-table__th oh-sticky-table__right" style="width: 180px;">{% trans "Actions" %}</div>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="oh-sticky-table__tbody">
+                {% for restriction in usage_restrictions %}
+                    <div class="oh-sticky-table__tr">
+                        <div class="oh-sticky-table__td sticky">{{restriction.employee_id}}</div>
+                        <div class="oh-sticky-table__td">
+                            {% for leave_type in restriction.leave_type_ids.all %}
+                                {{leave_type}}{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </div>
+                        <div class="oh-sticky-table__td">{{restriction.max_consecutive_days}}</div>
+                        <div class="oh-sticky-table__td dateformat_changer">{{restriction.valid_until}}</div>
+                        <div class="oh-sticky-table__td">{{restriction.description|default:""}}</div>
+                        {% if perms.leave.change_leavetypeusagerestriction or perms.leave.delete_leavetypeusagerestriction %}
+                            <div class="oh-sticky-table__td oh-sticky-table__right">
+                                <div class="oh-btn-group">
+                                    {% if perms.leave.change_leavetypeusagerestriction %}
+                                        <button class="oh-btn oh-btn--light-bkg w-100" title="{% trans 'Edit' %}"
+                                            data-toggle="oh-modal-toggle" data-target="#objectUpdateModal"
+                                            hx-get="{% url 'leave-usage-restriction-update' restriction.id %}?{{pd}}"
+                                            hx-target="#objectUpdateModalTarget">
+                                            <ion-icon name="create-outline"></ion-icon>
+                                        </button>
+                                    {% endif %}
+                                    {% if perms.leave.delete_leavetypeusagerestriction %}
+                                        <a class="oh-btn oh-btn--danger-outline oh-btn--light-bkg w-100" id="delete-link"
+                                            hx-confirm="{% trans 'Are you sure you want to delete?' %}"
+                                            hx-post="{% url 'leave-usage-restriction-delete' restriction.id %}?{{pd}}"
+                                            hx-target="#usageRestrictions">
+                                            <ion-icon name="trash-outline"></ion-icon>
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="oh-pagination" data-pd="{{pd}}">
+        <span class="oh-pagination__page">
+            {% trans "Page" %} {{ usage_restrictions.number }} {% trans "of" %} {{ usage_restrictions.paginator.num_pages }}.
+        </span>
+        <nav class="oh-pagination__nav">
+            <ul class="oh-pagination__items">
+                {% if usage_restrictions.has_previous %}
+                    <li class="oh-pagination__item oh-pagination__item--wide">
+                        <a hx-target="#usageRestrictions" hx-get="{% url 'leave-usage-restriction-list' %}?{{pd}}&page=1"
+                            class="oh-pagination__link">{% trans "First" %}</a>
+                    </li>
+                    <li class="oh-pagination__item oh-pagination__item--wide">
+                        <a hx-target="#usageRestrictions"
+                            hx-get="{% url 'leave-usage-restriction-list' %}?{{pd}}&page={{ usage_restrictions.previous_page_number }}"
+                            class="oh-pagination__link">{% trans "Previous" %}</a>
+                    </li>
+                {% endif %}
+                {% if usage_restrictions.has_next %}
+                    <li class="oh-pagination__item oh-pagination__item--wide">
+                        <a hx-target="#usageRestrictions"
+                            hx-get="{% url 'leave-usage-restriction-list' %}?{{pd}}&page={{ usage_restrictions.next_page_number }}"
+                            class="oh-pagination__link">{% trans "Next" %}</a>
+                    </li>
+                    <li class="oh-pagination__item oh-pagination__item--wide">
+                        <a hx-target="#usageRestrictions"
+                            hx-get="{% url 'leave-usage-restriction-list' %}?{{pd}}&page={{ usage_restrictions.paginator.num_pages }}"
+                            class="oh-pagination__link">{% trans "Last" %}</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+{% else %}
+    <!--start of empty page  -->
+    <div style="
+        height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        " class="">
+        <div class="oh-404">
+            <img style="display: block; width: 150px; height: 150px; margin: 10px auto"
+                src="{% static 'images/ui/restrict.png' %}" class="mb-4" alt="" />
+            <h3 style="font-size: 20px" class="oh-404__subtitle">
+                {% trans "No leave usage limits available." %}
+            </h3>
+        </div>
+    </div>
+    <!-- end of empty page -->
+{% endif %}

@@ -1,0 +1,70 @@
+{% extends 'index.html' %} {% block content %} {% load static %} {% load i18n %}
+<!-- start of nav bar -->
+<section class="oh-wrapper oh-main__topbar" x-data="{searchShow: false}">
+    <!-- start of title -->
+    <div class="oh-main__titlebar oh-main__titlebar--left">
+        <h1 class="oh-main__titlebar-title fw-bold">
+            {% trans "Leave Usage Limits" %}
+        </h1>
+        <a class="oh-main__titlebar-search-toggle" role="button" aria-label="Toggle Search"
+            @click="searchShow = !searchShow">
+            <ion-icon name="search-outline" class="oh-main__titlebar-serach-icon"></ion-icon>
+        </a>
+    </div>
+    <!-- end of title -->
+
+    <div class="oh-main__titlebar oh-main__titlebar--right">
+        {% if usage_restrictions %}
+            <!-- start of search -->
+            <div class="oh-input-group oh-input__search-group" :class="searchShow ? 'oh-input__search-group--show' : ''">
+                <ion-icon name="search-outline" class="oh-input-group__icon oh-input-group__icon--left"></ion-icon>
+                <input id="searchUsageRestrictions" type="text" class="oh-input oh-input__icon" aria-label="Search Input"
+                    placeholder="{% trans 'Search' %}" name="search" hx-get="{% url 'leave-usage-restriction-list' %}"
+                    hx-trigger="keyup" hx-target="#usageRestrictions" />
+            </div>
+            <!-- end of search -->
+        {% endif %}
+        <div class="oh-main__titlebar-button-container">
+            <!-- start of create -->
+            {% if perms.leave.add_leavetypeusagerestriction %}
+            <div class="oh-btn-group ml-2">
+                <div class="oh-dropdown" x-data="{open: false}">
+                    <button id="usageRestrictionCreateButton" class="oh-btn oh-btn--secondary oh-btn--shadow"
+                        data-toggle="oh-modal-toggle" data-target="#objectCreateModal"
+                        hx-get="{% url 'leave-usage-restriction-creation' %}" hx-target="#objectCreateModalTarget">
+                        <ion-icon name="add-outline" class="me-1"></ion-icon>
+                        {% trans "Create" %}
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+            <!-- end of create -->
+        </div>
+    </div>
+</section>
+<!-- end of nav bar -->
+
+<!-- start of usage restrictions display -->
+<div class="oh-wrapper" id="usageRestrictions">
+    {% if usage_restrictions %} {% include 'leave/usage_restriction/usage_restriction_list.html' %} {% else %}
+        <!--start of empty page  -->
+        <div style="
+        height: 70vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        " class="">
+            <div class="oh-404">
+                <img style="display: block; width: 150px; height: 150px; margin: 10px auto"
+                    src="{% static 'images/ui/restrict.png' %}" class="mb-4" alt="" />
+                <h3 style="font-size: 20px" class="oh-404__subtitle">
+                    {% trans "No leave usage limits available." %}
+                </h3>
+            </div>
+        </div>
+        <!-- end of empty page -->
+    {% endif %}
+</div>
+<!-- end of usage restrictions display -->
+
+{% endblock %}
