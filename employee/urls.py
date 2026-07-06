@@ -319,6 +319,11 @@ urlpatterns = [
         knowledge.add_comment,
         name="knowledge-comment-add",
     ),
+    path(
+        "knowledge-comment-edit/<int:comment_id>/",
+        knowledge.edit_comment,
+        name="knowledge-comment-edit",
+    ),
     path("view-policies/", policies.view_policies, name="view-policies"),
     path("search-policies", policies.search_policies, name="search-policies"),
     path("create-policy", policies.create_policy, name="create-policy"),

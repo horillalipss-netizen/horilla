@@ -1,5 +1,6 @@
 {% extends 'index.html' %}
 {% load i18n %}
+{% load knowledge_tags %}
 {% block content %}
 <div class="oh-wrapper">
     <section class="oh-wrapper oh-main__topbar">
@@ -16,7 +17,7 @@
         </div>
     </section>
 
-    {% if space.description %}<p class="text-muted mb-4">{{ space.description }}</p>{% endif %}
+    {% if space.description %}<p class="text-muted mb-4">{{ space.description|kb_richtext }}</p>{% endif %}
 
     {% for doc in documents %}
     <div class="oh-card oh-card--margin">
@@ -27,15 +28,31 @@
             {% endif %}
         </div>
         <div class="oh-card__body mt-2">
-            {% if doc.description %}<p>{{ doc.description|linebreaksbr }}</p>{% endif %}
+            {% if doc.description %}<p>{{ doc.description|kb_richtext }}</p>{% endif %}
             {% if doc.attachment %}<a href="{{ doc.attachment.url }}" target="_blank" class="oh-btn oh-btn--light-bkg"><ion-icon name="document-attach-outline"></ion-icon> {% trans "Attachment" %}</a>{% endif %}
 
             <hr>
             <div class="fw-bold mb-2">{% trans "Comments" %}</div>
             {% for c in doc.comments.all %}
             <div class="mb-2" style="background:#f7f7f7;border-radius:6px;padding:8px;">
-                <span class="text-muted" style="font-size:.8rem;">{{ c.created_by|default:"" }} · {{ c.created_at|date:"Y-m-d H:i" }}</span>
-                <div>{{ c.comment|linebreaksbr }}</div>
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="text-muted" style="font-size:.8rem;">{{ c.created_by|default:"" }} · {{ c.created_at|date:"Y-m-d H:i" }}</span>
+                    <a href="#" class="text-muted" style="font-size:.9rem;" title="{% trans 'Edit' %}"
+                        onclick="event.preventDefault();document.getElementById('commentText{{ c.id }}').style.display='none';document.getElementById('commentEdit{{ c.id }}').style.display='flex';">
+                        <ion-icon name="create-outline"></ion-icon>
+                    </a>
+                </div>
+                <div id="commentText{{ c.id }}">{{ c.comment|kb_richtext }}</div>
+                <form method="post" action="{% url 'knowledge-comment-edit' c.id %}" id="commentEdit{{ c.id }}"
+                    class="mt-1" style="display:none;gap:8px;">
+                    {% csrf_token %}
+                    <input type="text" name="comment" class="oh-input w-100" value="{{ c.comment }}" required>
+                    <button type="submit" class="oh-btn oh-btn--secondary">{% trans "Save" %}</button>
+                    <button type="button" class="oh-btn oh-btn--light-bkg"
+                        onclick="document.getElementById('commentEdit{{ c.id }}').style.display='none';document.getElementById('commentText{{ c.id }}').style.display='block';">
+                        {% trans "Cancel" %}
+                    </button>
+                </form>
             </div>
             {% empty %}
             <p class="text-muted">{% trans "No comments yet." %}</p>
