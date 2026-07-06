@@ -197,3 +197,19 @@ def add_comment(request, doc_id):
         KnowledgeComment.objects.create(document_id=doc, comment=text)
         messages.success(request, _("Comment added."))
     return redirect("knowledge-space", space_id=doc.space_id_id)
+
+
+@login_required
+def edit_comment(request, comment_id):
+    """Any user with access to the space may edit any comment."""
+    comment = get_object_or_404(KnowledgeComment, id=comment_id)
+    space = comment.document_id.space_id
+    if kb_space_level(request.user, space) is None:
+        return render(request, "404.html", status=404)
+    if request.method == "POST":
+        text = (request.POST.get("comment") or "").strip()
+        if text:
+            comment.comment = text
+            comment.save()
+            messages.success(request, _("Comment updated."))
+    return redirect("knowledge-space", space_id=space.id)
