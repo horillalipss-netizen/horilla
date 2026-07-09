@@ -161,8 +161,20 @@ def sidebar_hr_or_operations(request, *args, **kwargs):
 
 
 def kb_can_manage(user):
-    """Only HR creates/edits knowledge spaces and assigns access."""
+    """Only HR manages the whole knowledge base (any space, any access)."""
     return is_hr(user)
+
+
+def kb_can_create(user):
+    """HR or a reporting manager (>=1 subordinate) may create spaces/documents."""
+    return is_hr(user) or is_manager(get_employee(user))
+
+
+def kb_owns(user, obj):
+    """HR, or the user who created the object (HorillaModel.created_by)."""
+    if is_hr(user):
+        return True
+    return bool(user and getattr(obj, "created_by_id", None) == user.id)
 
 
 def kb_space_level(user, space):
@@ -173,6 +185,9 @@ def kb_space_level(user, space):
       None   -> no access
     """
     if is_hr(user):
+        return "full"
+    if getattr(space, "created_by_id", None) == user.id:
+        # The creator of a space always has full access to it.
         return "full"
     employee = get_employee(user)
     level = None
@@ -191,7 +206,7 @@ def kb_space_level(user, space):
 
 
 def kb_accessible_spaces(user):
-    """Knowledge spaces the user may see (HR: all; else public + assigned)."""
+    """Knowledge spaces the user may see (HR: all; else public + assigned + own)."""
     from django.db.models import Q
 
     from employee.models import KnowledgeSpace, KnowledgeSpaceAccess
@@ -205,4 +220,6 @@ def kb_accessible_spaces(user):
     assigned = KnowledgeSpaceAccess.objects.filter(
         employee_id=employee
     ).values_list("space_id", flat=True)
-    return qs.filter(Q(is_public=True) | Q(id__in=list(assigned)))
+    return qs.filter(
+        Q(is_public=True) | Q(id__in=list(assigned)) | Q(created_by=user)
+    )

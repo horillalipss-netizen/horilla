@@ -18,7 +18,6 @@ from employee.models import (
     Employee,
     EmployeeGeneralSetting,
     EmployeeWorkInformation,
-    ProfileEditFeature,
 )
 from horilla import horilla_apps
 from horilla.decorators import hx_request_required, login_required, permission_required
@@ -291,12 +290,5 @@ def enable_late_come_early_out_tracking(request):
 
 
 def enable_profile_edit(request):
-    from accessibility.accessibility import ACCESSBILITY_FEATURE
-
-    profile_edit = ProfileEditFeature.objects.filter().first()
-    enable = True if profile_edit and profile_edit.is_enabled else False
-    if enable:
-        if not any(item[0] == "profile_edit" for item in ACCESSBILITY_FEATURE):
-            ACCESSBILITY_FEATURE.append(("profile_edit", _("Profile Edit Access")))
-
-    return {"profile_edit_enabled": enable}
+    # Every employee may always edit their own profile.
+    return {"profile_edit_enabled": True}
