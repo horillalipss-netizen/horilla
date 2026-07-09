@@ -7,7 +7,7 @@
             </a>
             {% if space.description %}<div class="text-muted" style="font-size:.9rem;">{{ space.description }}</div>{% endif %}
         </div>
-        {% if can_manage %}
+        {% if can_manage or space.created_by_id == request.user.id %}
         <div class="d-flex" style="gap:6px;">
             <a class="oh-btn oh-btn--light-bkg" href="{% url 'knowledge-space-access' space.id %}" title="{% trans 'Manage access' %}"><ion-icon name="people-outline"></ion-icon></a>
             <a class="oh-btn oh-btn--light-bkg" href="{% url 'knowledge-space-create' %}?id={{ space.id }}" title="{% trans 'Edit' %}"><ion-icon name="create-outline"></ion-icon></a>

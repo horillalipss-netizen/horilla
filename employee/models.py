@@ -1187,7 +1187,7 @@ class KnowledgeDocument(HorillaModel):
     )
 
     class Meta:
-        ordering = ["-id"]
+        ordering = ["id"]
         verbose_name = _("Knowledge Document")
         verbose_name_plural = _("Knowledge Documents")
 

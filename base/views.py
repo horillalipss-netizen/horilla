@@ -39,8 +39,6 @@ from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from accessibility.accessibility import ACCESSBILITY_FEATURE
-from accessibility.models import DefaultAccessibility
 from base.backends import ConfiguredEmailBackend
 from base.decorators import (
     shift_request_change_permission,
@@ -159,7 +157,6 @@ from employee.models import (
     Employee,
     EmployeeGeneralSetting,
     EmployeeWorkInformation,
-    ProfileEditFeature,
 )
 from horilla import horilla_apps
 from horilla.decorators import (
@@ -5187,10 +5184,6 @@ def general_settings(request):
         AccountBlockUnblock.objects.exists()
         and AccountBlockUnblock.objects.first().is_enabled
     )
-    enabled_profile_edit = (
-        ProfileEditFeature.objects.exists()
-        and ProfileEditFeature.objects.first().is_enabled
-    )
     history_tracking_instance = HistoryTrackingFields.objects.first()
     history_fields_form_initial = {}
     if history_tracking_instance and history_tracking_instance.tracking_fields:
@@ -5223,7 +5216,6 @@ def general_settings(request):
             "history_fields_form": history_fields_form,
             "history_tracking_instance": history_tracking_instance,
             "enabled_block_unblock": enabled_block_unblock,
-            "enabled_profile_edit": enabled_profile_edit,
             "prefix_form": prefix_form,
             "companies": companies,
             "selected_company_id": selected_company_id,
@@ -5464,47 +5456,6 @@ def enable_account_block_unblock(request):
             _(
                 f"Account block/unblock setting has been {'enabled' if enabled else 'disabled'}."
             ),
-        )
-        if request.META.get("HTTP_HX_REQUEST"):
-            return HttpResponse()
-        return redirect(general_settings)
-    return HttpResponse(status=405)
-
-
-@login_required
-@permission_required("employee.change_employee")
-def enable_profile_edit_feature(request):
-
-    if request.method == "POST":
-        enabled = request.POST.get("enable_profile_edit") == "on"
-        instance = ProfileEditFeature.objects.first()
-        feature = DefaultAccessibility.objects.filter(feature="profile_edit").first()
-        if instance:
-            instance.is_enabled = enabled
-            instance.save()
-        else:
-            ProfileEditFeature.objects.create(is_enabled=enabled)
-
-        if enabled and not feature:
-            DefaultAccessibility.objects.create(
-                feature="profile_edit", filter={"feature": ["profile_edit"]}
-            )
-        else:
-            if feature is not None:
-                feature.delete()
-                messages.info(
-                    request, _("Profile edit accessibility feature has been removed.")
-                )
-
-        if enabled:
-            if not any(item[0] == "profile_edit" for item in ACCESSBILITY_FEATURE):
-                ACCESSBILITY_FEATURE.append(("profile_edit", _("Profile Edit Access")))
-        else:
-            ACCESSBILITY_FEATURE.pop()
-
-        messages.success(
-            request,
-            _(f"Profile edit feature has been {'enabled' if enabled else 'disabled'}."),
         )
         if request.META.get("HTTP_HX_REQUEST"):
             return HttpResponse()

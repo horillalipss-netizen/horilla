@@ -16,7 +16,9 @@ from django.utils.translation import gettext_lazy as _
 from base.access import (
     is_hr,
     kb_accessible_spaces,
+    kb_can_create,
     kb_can_manage,
+    kb_owns,
     kb_space_level,
 )
 from employee.models import (
@@ -47,9 +49,18 @@ class KnowledgeAccessForm(forms.ModelForm):
         fields = ["employee_id", "level"]
 
 
-def _hr_only(request):
-    if not kb_can_manage(request.user):
-        messages.error(request, _("Only HR can manage the knowledge base."))
+def _can_create(request):
+    if not kb_can_create(request.user):
+        messages.error(
+            request, _("Only HR or managers can create in the knowledge base.")
+        )
+        return False
+    return True
+
+
+def _owns_or_hr(request, obj):
+    if not kb_owns(request.user, obj):
+        messages.error(request, _("Only HR or the creator can manage this."))
         return False
     return True
 
@@ -65,6 +76,7 @@ def knowledge_base(request):
             "public_spaces": spaces.filter(is_public=True),
             "private_spaces": spaces.filter(is_public=False),
             "can_manage": kb_can_manage(request.user),
+            "can_create": kb_can_create(request.user),
         },
     )
 
@@ -91,10 +103,12 @@ def knowledge_space(request, space_id):
 
 @login_required
 def create_space(request):
-    """HR: create a knowledge space (optionally editing one via ?id=)."""
-    if not _hr_only(request):
+    """HR or a manager: create a knowledge space (optionally editing one via ?id=)."""
+    if not _can_create(request):
         return redirect("knowledge-base")
     instance = KnowledgeSpace.objects.filter(id=request.GET.get("id")).first()
+    if instance and not _owns_or_hr(request, instance):
+        return redirect("knowledge-base")
     form = KnowledgeSpaceForm(instance=instance)
     if request.method == "POST":
         form = KnowledgeSpaceForm(request.POST, instance=instance)
@@ -107,7 +121,8 @@ def create_space(request):
 
 @login_required
 def delete_space(request, space_id):
-    if not _hr_only(request):
+    space = KnowledgeSpace.objects.filter(id=space_id).first()
+    if space and not _owns_or_hr(request, space):
         return redirect("knowledge-base")
     KnowledgeSpace.objects.filter(id=space_id).delete()
     messages.success(request, _("Knowledge space deleted."))
@@ -116,10 +131,10 @@ def delete_space(request, space_id):
 
 @login_required
 def assign_access(request, space_id):
-    """HR: assign / list employee access for a private space."""
-    if not _hr_only(request):
-        return redirect("knowledge-base")
+    """HR or the space creator: assign / list employee access for a private space."""
     space = get_object_or_404(KnowledgeSpace, id=space_id)
+    if not _owns_or_hr(request, space):
+        return redirect("knowledge-base")
     form = KnowledgeAccessForm()
     if request.method == "POST":
         form = KnowledgeAccessForm(request.POST)
@@ -146,9 +161,9 @@ def assign_access(request, space_id):
 
 @login_required
 def remove_access(request, access_id):
-    if not _hr_only(request):
-        return redirect("knowledge-base")
     access = get_object_or_404(KnowledgeSpaceAccess, id=access_id)
+    if not _owns_or_hr(request, access.space_id):
+        return redirect("knowledge-base")
     space_id = access.space_id_id
     access.delete()
     messages.success(request, _("Access removed."))

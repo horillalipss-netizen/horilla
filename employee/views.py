@@ -42,9 +42,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
 from accessibility.decorators import enter_if_accessible
-from accessibility.methods import update_employee_accessibility_cache
-from accessibility.middlewares import ACCESSIBILITY_CACHE_USER_KEYS
-from accessibility.models import DefaultAccessibility
 from base.forms import ModelForm
 from base.methods import (
     choosesubordinates,
@@ -191,20 +188,6 @@ BLOCKED_EXTENSIONS = {
 }
 
 
-def _check_reporting_manager(request, *args, **kwargs):
-    from base.access import manages
-
-    if kwargs.get("obj_id"):
-        obj_id = kwargs["obj_id"]
-        emp = Employee.objects.filter(id=obj_id).first()
-        if not emp:
-            return False
-        # Nested: a manager may open anyone in their whole subordinate chain
-        # (direct AND indirect), not just their direct reports.
-        return manages(request.user.employee_get, emp)
-    return request.user.employee_get.reporting_manager.exists()
-
-
 @login_required
 def get_language_code(request):
     """
@@ -249,13 +232,10 @@ def employee_profile(request):
 
 
 @login_required
-@enter_if_accessible(
-    feature="profile_edit",
-    perm="employee.change_employee",
-)
 def self_info_update(request):
     """
     This method is used to update own profile of an employee.
+    Every employee may always edit their own profile.
     """
     user = request.user
     employee = Employee.objects.filter(employee_user_id=user).first()
@@ -291,28 +271,6 @@ def self_info_update(request):
             "bank_form": bank_form,
         },
     )
-
-
-def profile_edit_access(request, emp_id):
-    feature = request.GET.get("feature", None)
-    accessibility = DefaultAccessibility.objects.filter(feature=feature).first()
-    if accessibility:
-        employees = Employee.objects.filter(id=emp_id)
-
-        if employee := employees.first():
-            if employee in accessibility.employees.all():
-                accessibility.employees.remove(employee)
-            else:
-                accessibility.employees.add(employee)
-
-            user_cache_key = ACCESSIBILITY_CACHE_USER_KEYS.get(
-                employees.first().employee_user_id.id, None
-            )
-            if user_cache_key:
-                cache.delete(user_cache_key[-1])
-                update_employee_accessibility_cache(user_cache_key[-1], employee)
-
-    return HorillaRedirect(request)
 
 
 @login_required
@@ -1905,18 +1863,16 @@ def employee_update_bank_details(request, obj_id=None):
 
 @login_required
 @hx_request_required
-@enter_if_accessible(
-    feature="employee_view",
-    perm="employee.view_employee",
-    method=_check_reporting_manager,
-)
 def employee_filter_view(request):
     """
     This method is used to filter employee.
     """
+    from base.access import visible_employees_qs
+
     previous_data = request.GET.urlencode()
     field = request.GET.get("field")
-    queryset = Employee.objects.filter()
+    # Everyone may see the full employee list; the CEO is hidden from non-HR.
+    queryset = visible_employees_qs(request.user, Employee.objects.filter())
     selected_company = request.session.get("selected_company")
     employees = EmployeeFilter(request.GET, queryset=queryset).qs
     if request.GET.get("is_active") != "False":
@@ -1957,19 +1913,19 @@ def employee_filter_view(request):
 
 
 @login_required
-@manager_can_enter("employee.view_employee")
 @hx_request_required
 def employee_card(request):
     """
     This method renders card template to view all employees.
     """
+    from base.access import visible_employees_qs
+
     previous_data = request.GET.urlencode()
     search = request.GET.get("search")
     if isinstance(search, type(None)):
         search = ""
-    employees = filtersubordinatesemployeemodel(
-        request, Employee.objects.all(), "employee.view_employee"
-    )
+    # Everyone may see the full employee list; the CEO is hidden from non-HR.
+    employees = visible_employees_qs(request.user, Employee.objects.all())
     if request.GET.get("is_active") is None:
         filter_obj = EmployeeFilter(
             request.GET,
@@ -1996,12 +1952,13 @@ def employee_card(request):
 
 
 @login_required
-@manager_can_enter("employee.view_employee")
 @hx_request_required
 def employee_list(request):
     """
     This method renders template to view all employees
     """
+    from base.access import visible_employees_qs
+
     previous_data = request.GET.urlencode()
     search = request.GET.get("search")
     if isinstance(search, type(None)):
@@ -2018,9 +1975,8 @@ def employee_list(request):
             request.GET,
             queryset=Employee.objects.filter(employee_first_name__icontains=search),
         )
-    employees = filtersubordinatesemployeemodel(
-        request, filter_obj.qs, "employee.view_employee"
-    )
+    # Everyone may see the full employee list; the CEO is hidden from non-HR.
+    employees = visible_employees_qs(request.user, filter_obj.qs)
     employees = sortby(request, employees, "orderby")
     page_number = request.GET.get("page")
     return render(
@@ -2381,15 +2337,12 @@ def get_manager_in(request):
 
 
 @login_required
-@enter_if_accessible(
-    feature="employee_view",
-    perm="employee.view_employee",
-    method=_check_reporting_manager,
-)
 def employee_search(request):
     """
     This method is used to search employee
     """
+    from base.access import visible_employees_qs
+
     search = request.GET["search"]
     view = request.GET["view"]
     previous_data = request.GET.urlencode()
@@ -2400,9 +2353,8 @@ def employee_search(request):
     template = "employee_personal_info/employee_card.html"
     if view == "list":
         template = "employee_personal_info/employee_list.html"
-    employees = filtersubordinatesemployeemodel(
-        request, employees, "employee.view_employee"
-    )
+    # Everyone may see the full employee list; the CEO is hidden from non-HR.
+    employees = visible_employees_qs(request.user, employees)
     employees = sortby(request, employees, "orderby")
     data_dict = parse_qs(previous_data)
     get_key_instances(Employee, data_dict)
@@ -3114,10 +3066,13 @@ def employee_select(request):
     """
     This method is used to return all the id of the employees to select the employee row
     """
+    from base.access import visible_employees_qs
+
     page_number = request.GET.get("page")
     employees = Employee.objects.filter()
     if page_number == "all":
         employees = Employee.objects.filter(is_active=True)
+    employees = visible_employees_qs(request.user, employees)
 
     employee_ids = [str(emp.id) for emp in employees]
     total_count = employees.count()
@@ -3128,20 +3083,19 @@ def employee_select(request):
 
 
 @login_required
-@manager_can_enter("employee.view_employee")
 def employee_select_filter(request):
     """
     This method is used to return all the ids of the filtered employees
     """
+    from base.access import visible_employees_qs
+
     page_number = request.GET.get("page")
     if page_number == "all":
         employee_filter = EmployeeFilter(
             request.GET, queryset=Employee.objects.filter()
         )
 
-        filtered_employees = filtersubordinatesemployeemodel(
-            request=request, queryset=employee_filter.qs, perm="employee.view_employee"
-        )
+        filtered_employees = visible_employees_qs(request.user, employee_filter.qs)
         employee_ids = [str(emp.id) for emp in filtered_employees]
         total_count = filtered_employees.count()
 

@@ -140,3 +140,23 @@ class LeaveTypeUsageRestrictionTestCase(TestCase):
             description="test",
         )
         request.check_leave_type_usage_restrictions()  # should not raise
+
+class OnLeavePanelAccessTestCase(TestCase):
+    """The dashboard "On Leave" panel is visible to every employee."""
+
+    def test_regular_employee_can_view_on_leave_panel(self):
+        from django.urls import reverse
+
+        employee = Employee.objects.create(
+            employee_first_name="Panel",
+            employee_last_name="Viewer",
+            email="panel.viewer@example.com",
+            phone="123456789",
+        )
+        user = employee.employee_user_id
+        user.is_new_employee = False
+        user.save()
+        self.client.force_login(user)
+        response = self.client.get(reverse("employee-leave"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "leave/dashboard/on_leave.html")
