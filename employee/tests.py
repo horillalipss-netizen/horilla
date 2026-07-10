@@ -277,8 +277,16 @@ class SelfProfileEditTestCase(TestCase):
                 "email": "self.editor@example.com",
                 "phone": "123456789",
                 "gender": "male",
+                "qualification": "Master",
+                "children_info": "Two kids",
+                "np_branch": "Branch 42",
+                "np_postomat": "Postomat 7",
             },
         )
         self.assertEqual(response.status_code, 200)
         employee.refresh_from_db()
         self.assertEqual(employee.employee_first_name, "Updated")
+        self.assertEqual(employee.qualification, "Master")
+        self.assertEqual(employee.children_info, "Two kids")
+        self.assertEqual(employee.np_branch, "Branch 42")
+        self.assertEqual(employee.np_postomat, "Postomat 7")

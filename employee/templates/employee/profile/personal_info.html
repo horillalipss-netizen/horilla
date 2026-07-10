@@ -122,6 +122,26 @@
                         <label class="oh-label d-block" for="children">{% trans "Children" %}</label>
                         {{form.children}} {{form.children.errors}}
                     </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                        <label class="oh-label d-block" for="{{form.children_info.id_for_label}}">
+                            {% trans "Children Information" %}
+                        </label>
+                        {{form.children_info}} {{form.children_info.errors}}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                        <label class="oh-label d-block" for="{{form.np_branch.id_for_label}}">
+                            {% trans "Nova Poshta Branch" %}
+                        </label>
+                        {{form.np_branch}} {{form.np_branch.errors}}
+                    </div>
+                    <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                        <label class="oh-label d-block" for="{{form.np_postomat.id_for_label}}">
+                            {% trans "Nova Poshta Parcel Locker" %}
+                        </label>
+                        {{form.np_postomat}} {{form.np_postomat.errors}}
+                    </div>
                 </div>
                 <hr class="mt-5 mb-3" />
                 <div class="w-100 d-flex align-items-center justify-content-end">
