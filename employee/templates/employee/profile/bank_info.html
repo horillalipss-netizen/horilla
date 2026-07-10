@@ -1,9 +1,46 @@
-{% load i18n %}
+{% load i18n %}{% load widget_tweaks %}
 <div class="oh-general__tab-target oh-profile-section mb-4 d-none" id="bank">
     <div class="oh-profile-section__card">
         <form action="" method="post">
 
             {% csrf_token %}
+            <input type="hidden" name="bank_info_submit" value="1" />
+            <h5 class="fw-bold mb-2">{% trans "FOP" %}</h5>
+            <div class="row">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <div class="oh-input-group">
+                        <label class="oh-label">{% trans "IBAN" %}</label>
+                        {{ bank_form.iban }}
+                        {{ bank_form.iban.errors }}
+                    </div>
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <div class="oh-input-group">
+                        <label class="oh-label">{% trans "RNOKPP" %}</label>
+                        {{ bank_form.rnokpp }}
+                        {{ bank_form.rnokpp.errors }}
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <div class="oh-input-group">
+                        <label class="oh-label">{% trans "Payment Purpose" %}</label>
+                        {{ bank_form.payment_purpose }}
+                        {{ bank_form.payment_purpose.errors }}
+                    </div>
+                </div>
+                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                    <div class="oh-input-group">
+                        <label class="oh-label d-block">{% trans "Maintained" %}</label>
+                        <div class="oh-switch" style="width: 30px;">
+                            {{ bank_form.fop_maintained|attr:"class:oh-switch__checkbox" }}
+                        </div>
+                        {{ bank_form.fop_maintained.errors }}
+                    </div>
+                </div>
+            </div>
+            <h5 class="fw-bold mb-2 mt-3">{% trans "Personal Card" %}</h5>
             <div class="row">
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
                     <div class="oh-input-group">
@@ -14,69 +51,26 @@
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
                     <div class="oh-input-group">
-                        <label class="oh-label">{% trans "Account Number" %}</label>
-                        {{ bank_form.account_number }}
-                        {{ bank_form.account_number.errors }}
+                        <label class="oh-label">{% trans "Card Number" %}</label>
+                        {{ bank_form.card_number }}
+                        {{ bank_form.card_number.errors }}
                     </div>
                 </div>
             </div>
+            <h5 class="fw-bold mb-2 mt-3">{% trans "Crypto Wallet" %}</h5>
             <div class="row">
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
                     <div class="oh-input-group">
-                        <label class="oh-label">{% trans "Branch" %}</label>
-                        {{ bank_form.branch }}
-                        {{ bank_form.branch.errors }}
+                        <label class="oh-label">{% trans "Wallet Number" %}</label>
+                        {{ bank_form.wallet_number }}
+                        {{ bank_form.wallet_number.errors }}
                     </div>
                 </div>
                 <div class="col-12 col-sm-12 col-md-12 col-lg-6">
                     <div class="oh-input-group">
-                        <label class="oh-label">{% trans "Bank Code" %} #1</label>
-                        {{ bank_form.any_other_code1 }}
-                        {{ bank_form.any_other_code1.errors }}
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12 col-sm-12 col-md-12 col-lg-12">
-                    <div class="oh-input-group">
-                        <label class="oh-label">{% trans "Bank Address" %}</label>
-                        {{ bank_form.address }}
-                        {{ bank_form.address.errors }}
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <label class="oh-label" for="country">{% trans "Country" %}</label>
-                    <select name="country" id="country" class="oh-select oh-select-2"
-                        data-selected="{{ bank_form.country.value|default:'' }}">
-                    </select>
-                    {{ bank_form.country.errors }}
-                </div>
-                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <div class="oh-input-group">
-                        <label class="oh-label">{% trans "State" %}</label>
-                        <select name="state" id="state" class="oh-select oh-select-2"
-                            data-selected="{{ bank_form.state.value|default:'' }}">
-
-                        </select>
-                        {{ bank_form.state.errors }}
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <div class="oh-input-group">
-                        <label class="oh-label">{% trans "City" %}</label>
-                        {{ bank_form.city }}
-                        {{ bank_form.city.errors }}
-                    </div>
-                </div>
-                <div class="col-12 col-sm-12 col-md-12 col-lg-6">
-                    <div class="oh-input-group">
-                        <label class="oh-label">{% trans "Bank Code" %} #2</label>
-                        {{ bank_form.any_other_code2 }}
-                        {{ bank_form.any_other_code2.errors }}
+                        <label class="oh-label">{% trans "Wallet Currency" %}</label>
+                        {{ bank_form.wallet_currency }}
+                        {{ bank_form.wallet_currency.errors }}
                     </div>
                 </div>
             </div>
@@ -88,5 +82,4 @@
             </div>
         </form>
     </div>
-</div>
 </div>
