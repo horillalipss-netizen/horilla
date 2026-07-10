@@ -160,3 +160,55 @@ class OnLeavePanelAccessTestCase(TestCase):
         response = self.client.get(reverse("employee-leave"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "leave/dashboard/on_leave.html")
+
+    def test_on_leave_panel_not_limited_by_company(self):
+        """The panel shows everyone on leave even when the viewer's session is
+        scoped to a company and the leave-taker's work info has no company."""
+        from django.urls import reverse
+
+        from base.models import Company
+
+        horilla_middlewares._thread_locals.request = DummyRequest()
+        company = Company.objects.create(
+            company="TOV Test",
+            hq=True,
+            address="Kyiv",
+            country="Ukraine",
+            state="Kyiv",
+            city="Kyiv",
+            zip="01001",
+        )
+        viewer = Employee.objects.create(
+            employee_first_name="Scoped",
+            employee_last_name="Viewer",
+            email="scoped.viewer@example.com",
+            phone="123456789",
+        )
+        viewer_user = viewer.employee_user_id
+        viewer_user.is_new_employee = False
+        viewer_user.save()
+        viewer_wi = viewer.employee_work_info
+        viewer_wi.company_id = company
+        viewer_wi.save()
+        onleave = Employee.objects.create(
+            employee_first_name="Vasyl",
+            employee_last_name="Companyless",
+            email="vasyl.companyless@example.com",
+            phone="123456789",
+        )
+        vacation = LeaveType.objects.create(name="Vacation2", payment="paid")
+        LeaveRequest.objects.create(
+            employee_id=onleave,
+            leave_type_id=vacation,
+            start_date=date.today(),
+            end_date=date.today(),
+            description="today",
+            status="approved",
+        )
+        self.client.force_login(viewer_user)
+        session = self.client.session
+        session["selected_company"] = str(company.id)
+        session.save()
+        response = self.client.get(reverse("employee-leave"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Vasyl")

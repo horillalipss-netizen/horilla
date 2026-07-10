@@ -1100,7 +1100,9 @@ def employee_view(request):
     from base.access import visible_employees_qs
 
     # Everyone may see the full employee list, but the CEO is hidden from non-HR.
-    queryset = visible_employees_qs(request.user, Employee.objects.filter())
+    # Unscoped (entire) queryset: employees must be visible regardless of the
+    # viewer's selected company or a missing company in work information.
+    queryset = visible_employees_qs(request.user, Employee.objects.entire())
     filter_obj = EmployeeFilter(request.GET, queryset=queryset).qs
     if request.GET.get("is_active") != "False":
         filter_obj = filter_obj.filter(is_active=True)
@@ -1108,7 +1110,7 @@ def employee_view(request):
     update_fields = BulkUpdateFieldForm()
     data_dict = parse_qs(previous_data)
     get_key_instances(Employee, data_dict)
-    emp = visible_employees_qs(request.user, Employee.objects.filter())
+    emp = visible_employees_qs(request.user, Employee.objects.entire())
 
     # Store the employees in the session
     request.session["filtered_employees"] = [employee.id for employee in queryset]
@@ -1872,16 +1874,12 @@ def employee_filter_view(request):
     previous_data = request.GET.urlencode()
     field = request.GET.get("field")
     # Everyone may see the full employee list; the CEO is hidden from non-HR.
-    queryset = visible_employees_qs(request.user, Employee.objects.filter())
-    selected_company = request.session.get("selected_company")
+    # Unscoped (entire) queryset: employees must stay visible regardless of the
+    # viewer's selected company or a missing company in work information.
+    queryset = visible_employees_qs(request.user, Employee.objects.entire())
     employees = EmployeeFilter(request.GET, queryset=queryset).qs
     if request.GET.get("is_active") != "False":
         employees = employees.filter(is_active=True)
-    if (
-        request.GET.get("employee_work_info__company_id") == None
-        and selected_company != "all"
-    ):
-        employees = employees.filter(employee_work_info__company_id=selected_company)
     page_number = request.GET.get("page")
     view = request.GET.get("view")
     data_dict = parse_qs(previous_data)
@@ -1925,7 +1923,8 @@ def employee_card(request):
     if isinstance(search, type(None)):
         search = ""
     # Everyone may see the full employee list; the CEO is hidden from non-HR.
-    employees = visible_employees_qs(request.user, Employee.objects.all())
+    # Unscoped (entire) queryset: not limited by the viewer's selected company.
+    employees = visible_employees_qs(request.user, Employee.objects.entire())
     if request.GET.get("is_active") is None:
         filter_obj = EmployeeFilter(
             request.GET,
@@ -1966,16 +1965,19 @@ def employee_list(request):
     if request.GET.get("is_active") is None:
         filter_obj = EmployeeFilter(
             request.GET,
-            queryset=Employee.objects.filter(
+            queryset=Employee.objects.entire().filter(
                 employee_first_name__icontains=search, is_active=True
             ),
         )
     else:
         filter_obj = EmployeeFilter(
             request.GET,
-            queryset=Employee.objects.filter(employee_first_name__icontains=search),
+            queryset=Employee.objects.entire().filter(
+                employee_first_name__icontains=search
+            ),
         )
     # Everyone may see the full employee list; the CEO is hidden from non-HR.
+    # Unscoped (entire) queryset: not limited by the viewer's selected company.
     employees = visible_employees_qs(request.user, filter_obj.qs)
     employees = sortby(request, employees, "orderby")
     page_number = request.GET.get("page")
@@ -2346,7 +2348,8 @@ def employee_search(request):
     search = request.GET["search"]
     view = request.GET["view"]
     previous_data = request.GET.urlencode()
-    employees = EmployeeFilter(request.GET).qs
+    # Unscoped (entire) queryset: not limited by the viewer's selected company.
+    employees = EmployeeFilter(request.GET, queryset=Employee.objects.entire()).qs
     if search == "":
         employees = employees.filter(is_active=True)
     page_number = request.GET.get("page")
@@ -3069,9 +3072,9 @@ def employee_select(request):
     from base.access import visible_employees_qs
 
     page_number = request.GET.get("page")
-    employees = Employee.objects.filter()
+    employees = Employee.objects.entire()
     if page_number == "all":
-        employees = Employee.objects.filter(is_active=True)
+        employees = Employee.objects.entire().filter(is_active=True)
     employees = visible_employees_qs(request.user, employees)
 
     employee_ids = [str(emp.id) for emp in employees]
@@ -3092,7 +3095,7 @@ def employee_select_filter(request):
     page_number = request.GET.get("page")
     if page_number == "all":
         employee_filter = EmployeeFilter(
-            request.GET, queryset=Employee.objects.filter()
+            request.GET, queryset=Employee.objects.entire()
         )
 
         filtered_employees = visible_employees_qs(request.user, employee_filter.qs)

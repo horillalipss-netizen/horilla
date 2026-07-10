@@ -2853,7 +2853,15 @@ def employee_leave(request):
     Returns:
     GET : return Json response of employee
     """
-    leaves = LeaveRequest.employees_on_leave_today(status="approved")
+    # Unscoped query: the panel must show everyone on leave regardless of the
+    # viewer's selected company or missing company in work information.
+    today = date.today()
+    leaves = LeaveRequest.objects.entire().filter(
+        start_date__lte=today,
+        end_date__gte=today,
+        status="approved",
+        employee_id__is_active=True,
+    )
     requests_ids = list(leaves.values_list("id", flat=True))
     today_holidays = Holidays.today_holidays()
     return render(

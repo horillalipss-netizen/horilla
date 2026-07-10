@@ -151,3 +151,4 @@ whoosh_index/
 
 #PyCharm
 .idea/
+.claude/launch.json
