@@ -233,6 +233,34 @@ class EmployeeListAccessTestCase(TestCase):
         self.assertContains(response, "League")
         self.assertNotContains(response, "Boss")
 
+    def test_company_scoped_session_does_not_hide_employees(self):
+        """A viewer whose session is scoped to a company still sees employees
+        whose work information has no (or another) company."""
+        from base.models import Company
+
+        company = Company.objects.create(
+            company="TOV Test",
+            hq=True,
+            address="Kyiv",
+            country="Ukraine",
+            state="Kyiv",
+            city="Kyiv",
+            zip="01001",
+        )
+        viewer_wi = EmployeeWorkInformation.objects.get(employee_id=self.regular)
+        viewer_wi.company_id = company
+        viewer_wi.save()
+        # self.colleague keeps an empty company in work information.
+        self.client.force_login(self.regular.employee_user_id)
+        session = self.client.session
+        session["selected_company"] = str(company.id)
+        session.save()
+        response = self.client.get(
+            reverse("employee-view-list"), HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "League")
+
 
 class SelfProfileEditTestCase(TestCase):
     """Every employee may always edit their own profile (no feature flag)."""
