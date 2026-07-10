@@ -233,6 +233,31 @@ class EmployeeListAccessTestCase(TestCase):
         self.assertContains(response, "League")
         self.assertNotContains(response, "Boss")
 
+    def test_manager_sees_everyone_with_accessibility_row_present(self):
+        """A reporting manager must see the full list even when a
+        DefaultAccessibility row for 'employee_view' exists (this row used to
+        trigger subordinate-only filtering inside EmployeeFilter)."""
+        from accessibility.models import DefaultAccessibility
+
+        DefaultAccessibility.objects.create(
+            feature="employee_view", filter={"feature": ["employee_view"]}
+        )
+        manager = make_employee("List", "Manager", "list.manager@example.com")
+        subordinate_wi = EmployeeWorkInformation.objects.get(
+            employee_id=self.colleague
+        )
+        subordinate_wi.reporting_manager_id = manager
+        subordinate_wi.save()
+        self.client.force_login(manager.employee_user_id)
+        response = self.client.get(
+            reverse("employee-view-list"), HTTP_HX_REQUEST="true"
+        )
+        self.assertEqual(response.status_code, 200)
+        # Sees the subordinate...
+        self.assertContains(response, "League")
+        # ...and a non-subordinate employee too.
+        self.assertContains(response, "Ular")
+
     def test_company_scoped_session_does_not_hide_employees(self):
         """A viewer whose session is scoped to a company still sees employees
         whose work information has no (or another) company."""
