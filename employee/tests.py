@@ -4,6 +4,7 @@ from django.urls import reverse
 from base.access import kb_accessible_spaces, kb_space_level
 from employee.models import (
     Employee,
+    EmployeeBankDetails,
     EmployeeWorkInformation,
     KnowledgeComment,
     KnowledgeDocument,
@@ -315,3 +316,32 @@ class SelfProfileEditTestCase(TestCase):
         self.assertEqual(employee.children_info, "Two kids")
         self.assertEqual(employee.np_branch, "Branch 42")
         self.assertEqual(employee.np_postomat, "Postomat 7")
+
+    def test_employee_updates_own_bank_details(self):
+        reset_thread_locals()
+        employee = make_employee("Bank", "Editor", "bank.editor@example.com")
+        self.client.force_login(employee.employee_user_id)
+        response = self.client.post(
+            reverse("edit-profile"),
+            {
+                "bank_info_submit": "1",
+                "iban": "UA213223130000026007233566001",
+                "rnokpp": "1234567890",
+                "payment_purpose": "Оплата послуг",
+                "fop_maintained": "on",
+                "bank_name": "Monobank",
+                "card_number": "5375414112345678",
+                "wallet_number": "TXYZ1234567890",
+                "wallet_currency": "USDT",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        bank = EmployeeBankDetails.objects.get(employee_id=employee)
+        self.assertEqual(bank.iban, "UA213223130000026007233566001")
+        self.assertEqual(bank.rnokpp, "1234567890")
+        self.assertEqual(bank.payment_purpose, "Оплата послуг")
+        self.assertTrue(bank.fop_maintained)
+        self.assertEqual(bank.bank_name, "Monobank")
+        self.assertEqual(bank.card_number, "5375414112345678")
+        self.assertEqual(bank.wallet_number, "TXYZ1234567890")
+        self.assertEqual(bank.wallet_currency, "USDT")

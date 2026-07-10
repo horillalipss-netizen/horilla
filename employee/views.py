@@ -255,7 +255,7 @@ def self_info_update(request):
                     instance.badge_id = badge_id
                 instance.save()
                 messages.success(request, _("Profile updated."))
-        elif request.POST.get("any_other_code1") is not None:
+        elif request.POST.get("bank_info_submit") is not None:
             instance = EmployeeBankDetails.objects.filter(employee_id=employee).first()
             bank_form = EmployeeBankDetailsForm(request.POST, instance=instance)
             if bank_form.is_valid():
