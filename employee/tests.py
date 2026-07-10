@@ -315,3 +315,34 @@ class SelfProfileEditTestCase(TestCase):
         self.assertEqual(employee.children_info, "Two kids")
         self.assertEqual(employee.np_branch, "Branch 42")
         self.assertEqual(employee.np_postomat, "Postomat 7")
+
+    def test_employee_updates_own_bank_details(self):
+        from employee.models import EmployeeBankDetails
+
+        reset_thread_locals()
+        employee = make_employee("Bank", "Editor", "bank.editor@example.com")
+        self.client.force_login(employee.employee_user_id)
+        response = self.client.post(
+            reverse("edit-profile"),
+            {
+                "bank_info_submit": "1",
+                "iban": "UA213223130000026007233566001",
+                "rnokpp": "1234567890",
+                "payment_purpose": "FOP payment",
+                "fop_maintained": "on",
+                "bank_name": "PrivatBank",
+                "card_number": "4149499912345678",
+                "wallet_number": "TRC20-abc",
+                "wallet_currency": "USDT",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        bank = EmployeeBankDetails.objects.get(employee_id=employee)
+        self.assertEqual(bank.iban, "UA213223130000026007233566001")
+        self.assertEqual(bank.rnokpp, "1234567890")
+        self.assertEqual(bank.payment_purpose, "FOP payment")
+        self.assertTrue(bank.fop_maintained)
+        self.assertEqual(bank.bank_name, "PrivatBank")
+        self.assertEqual(bank.card_number, "4149499912345678")
+        self.assertEqual(bank.wallet_number, "TRC20-abc")
+        self.assertEqual(bank.wallet_currency, "USDT")
